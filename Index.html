@@ -1,0 +1,1564 @@
+html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHONVISION — Song Contest</title>
+<style>
+  :root {
+    --cherry: #e0115f;
+    --cherry-dark: #b00d4a;
+    --pink: #ff4d8d;
+    --pink-light: #ff8fb8;
+    --pink-soft: #ffe0ec;
+    --white: #ffffff;
+    --silver: #e8e8ef;
+    --glass: rgba(255, 255, 255, 0.18);
+    --glass-border: rgba(255, 255, 255, 0.35);
+    --glow: 0 0 40px rgba(255, 77, 141, 0.45);
+    --radius: 18px;
+    --radius-sm: 12px;
+    --font: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    font-family: var(--font);
+    background: linear-gradient(145deg, #1a0510 0%, #3a0a22 40%, #1a0510 100%);
+    color: var(--white);
+    overflow-x: hidden;
+  }
+
+  .bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .candy {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.18;
+    filter: blur(2px);
+    animation: float 18s ease-in-out infinite;
+  }
+  .candy.c1 { width: 120px; height: 120px; background: radial-gradient(circle, #ff4d8d, #e0115f); top: 10%; left: 8%; }
+  .candy.c2 { width: 80px; height: 80px; background: radial-gradient(circle, #ff8fb8, #ff4d8d); top: 60%; left: 85%; animation-delay: -4s; }
+  .candy.c3 { width: 160px; height: 160px; background: radial-gradient(circle, #ffe0ec, #ff8fb8); top: 75%; left: 15%; animation-delay: -8s; }
+  .candy.c4 { width: 60px; height: 60px; background: radial-gradient(circle, #e0115f, #b00d4a); top: 25%; left: 70%; animation-delay: -2s; }
+  .candy.c5 { width: 100px; height: 100px; background: radial-gradient(circle, #ff4d8d, #ffe0ec); top: 40%; left: 40%; animation-delay: -6s; }
+
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -40px) scale(1.08); }
+    66% { transform: translate(-20px, 25px) scale(0.95); }
+  }
+
+  .page {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    animation: fadeIn 0.45s ease;
+  }
+  .page.active { display: flex; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* HOME */
+  .home-brand { text-align: center; margin-bottom: 48px; }
+
+  .logo {
+    font-size: clamp(2.4rem, 8vw, 4.2rem);
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    background: linear-gradient(135deg, #fff 0%, #ff8fb8 40%, #e0115f 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  .headline {
+    font-size: clamp(1.05rem, 3.5vw, 1.55rem);
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: #ffe0ec;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .subtitle {
+    font-size: 1.05rem;
+    color: var(--pink-light);
+    opacity: 0.9;
+    font-style: italic;
+  }
+
+  .btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .btn {
+    appearance: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.06em;
+    padding: 16px 28px;
+    border-radius: 999px;
+    transition: all 0.25s ease;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #ff4d8d 0%, #e0115f 100%);
+    color: white;
+    box-shadow: 0 8px 32px rgba(224, 17, 95, 0.45), inset 0 1px 0 rgba(255,255,255,0.25);
+  }
+  .btn-primary:hover, .btn-primary:focus-visible {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 40px rgba(224, 17, 95, 0.6);
+  }
+
+  .btn-secondary {
+    background: var(--glass);
+    color: white;
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px);
+  }
+  .btn-secondary:hover, .btn-secondary:focus-visible {
+    background: rgba(255,255,255,0.28);
+    transform: translateY(-2px);
+  }
+
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+  .footer-slogan {
+    position: absolute;
+    bottom: 28px;
+    font-size: 0.95rem;
+    letter-spacing: 0.15em;
+    color: var(--pink-light);
+    opacity: 0.7;
+  }
+
+  /* PLAYER */
+  .player-wrap {
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .player-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(224, 17, 95, 0.85);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+  }
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    border-radius: 50%;
+    animation: pulse 1.2s ease infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+
+  .video-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #0a0508;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--glow), 0 20px 60px rgba(0,0,0,0.5);
+    border: 1px solid var(--glass-border);
+  }
+
+  #mainVideo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #000;
+  }
+
+  .video-overlay-info {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 20px 24px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.85));
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .country-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.95rem;
+    color: var(--pink-light);
+  }
+  .flag { font-size: 1.4rem; line-height: 1; }
+
+  .artist-title { font-size: 1.25rem; font-weight: 700; }
+
+  .progress-bar-wrap {
+    height: 4px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
+    margin-top: 10px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #ff4d8d, #e0115f);
+    width: 0%;
+    transition: width 0.2s linear;
+  }
+
+  .time-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.7);
+    margin-top: 4px;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ctrl-btn {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    color: white;
+    min-width: 48px;
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .ctrl-btn:hover, .ctrl-btn:focus-visible {
+    background: rgba(255,255,255,0.3);
+    transform: scale(1.05);
+  }
+
+  .volume-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .volume-wrap input[type=range] {
+    width: 90px;
+    accent-color: var(--pink);
+  }
+
+  .up-next {
+    background: var(--glass);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+  }
+  .up-next h3 {
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    color: var(--pink-light);
+    margin-bottom: 12px;
+  }
+  .queue-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .queue-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    background: rgba(0,0,0,0.25);
+    font-size: 0.9rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--pink-light);
+    font-size: 1.25rem;
+    letter-spacing: 0.08em;
+  }
+
+  /* LOGIN & ADMIN */
+  .login-card, .admin-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 36px 32px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .login-card h2, .admin-card h2 {
+    text-align: center;
+    margin-bottom: 28px;
+    font-size: 1.5rem;
+    letter-spacing: 0.08em;
+  }
+
+  .form-group { margin-bottom: 18px; }
+  .form-group label {
+    display: block;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    color: var(--pink-light);
+    margin-bottom: 6px;
+  }
+  .form-group input[type=text],
+  .form-group input[type=password],
+  .form-group input[type=file],
+  .form-group select {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--glass-border);
+    background: rgba(0,0,0,0.35);
+    color: white;
+    font-size: 1rem;
+    font-family: inherit;
+  }
+  .form-group input:focus, .form-group select:focus {
+    outline: none;
+    border-color: var(--pink);
+    box-shadow: 0 0 0 3px rgba(255, 77, 141, 0.25);
+  }
+
+  .show-pass {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.7);
+    cursor: pointer;
+  }
+
+  .error-msg {
+    color: #ff6b8a;
+    font-size: 0.9rem;
+    text-align: center;
+    margin-top: 12px;
+    min-height: 1.2em;
+  }
+  .success-msg {
+    color: #7dffb3;
+    font-size: 0.9rem;
+    text-align: center;
+    margin-top: 12px;
+    min-height: 1.2em;
+  }
+
+  .admin-wrap {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .admin-header h1 {
+    font-size: 1.55rem;
+    letter-spacing: 0.06em;
+  }
+  .admin-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .btn-sm { padding: 10px 18px; font-size: 0.85rem; }
+
+  .panel {
+    background: var(--glass);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+  .panel h3 {
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    color: var(--pink-light);
+    margin-bottom: 18px;
+  }
+
+  .country-search-wrap { position: relative; }
+  .country-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0; right: 0;
+    max-height: 220px;
+    overflow-y: auto;
+    background: #2a1020;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    z-index: 30;
+    display: none;
+  }
+  .country-dropdown.open { display: block; }
+  .country-option {
+    padding: 10px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.95rem;
+  }
+  .country-option:hover { background: rgba(255, 77, 141, 0.25); }
+
+  .song-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .song-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: rgba(0,0,0,0.3);
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+  }
+  .song-item.playing {
+    border-color: var(--pink);
+    box-shadow: 0 0 20px rgba(255, 77, 141, 0.3);
+  }
+  .song-meta { flex: 1; min-width: 180px; }
+  .song-meta .title { font-weight: 700; }
+  .song-meta .artist { font-size: 0.9rem; color: var(--pink-light); }
+
+  .song-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+  .btn-icon {
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid var(--glass-border);
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+  }
+  .btn-icon:hover { background: rgba(255, 77, 141, 0.4); }
+  .btn-danger:hover { background: rgba(200, 40, 60, 0.6); }
+
+  .loading {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 600px) {
+    .player-header { flex-direction: column; align-items: flex-start; }
+    .admin-header { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+  <div class="bg-canvas" aria-hidden="true">
+    <div class="candy c1"></div>
+    <div class="candy c2"></div>
+    <div class="candy c3"></div>
+    <div class="candy c4"></div>
+    <div class="candy c5"></div>
+  </div>
+
+  <!-- HOME -->
+  <section id="page-home" class="page active">
+    <div class="home-brand">
+      <div class="logo">SHONVISION</div>
+      <h1 class="headline">NON STOP HITS FROM SHONVISION SONG CONTEST</h1>
+      <p class="subtitle">The music never stops.</p>
+    </div>
+    <div class="btn-group">
+      <button type="button" class="btn btn-primary" id="btn-nonstop">NON STOP HITS</button>
+      <button type="button" class="btn btn-secondary" id="btn-admin">ADMIN</button>
+    </div>
+    <p class="footer-slogan">#MusicIsCandy</p>
+  </section>
+
+  <!-- PLAYER -->
+  <section id="page-player" class="page">
+    <div class="player-wrap">
+      <div class="player-header">
+        <div class="logo" style="font-size:1.5rem;margin:0;">SHONVISION</div>
+        <div class="live-badge" id="live-badge"><span class="live-dot"></span> LIVE</div>
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-back-home">HOME</button>
+      </div>
+
+      <div id="player-empty" class="empty-state">THE NEXT HIT IS COMING SOON</div>
+
+      <div id="player-content" class="hidden">
+        <div class="video-container">
+          <video id="mainVideo" playsinline></video>
+          <div class="video-overlay-info">
+            <div class="country-line">
+              <span class="flag" id="now-flag"></span>
+              <span id="now-country"></span>
+            </div>
+            <div class="artist-title">
+              <span id="now-artist"></span> — <span id="now-title"></span>
+            </div>
+            <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+            <div class="time-row">
+              <span id="time-current">0:00</span>
+              <span id="time-remaining">-0:00</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button type="button" class="ctrl-btn" id="btn-playpause">PLAY</button>
+          <button type="button" class="ctrl-btn" id="btn-mute">MUTE</button>
+          <div class="volume-wrap">
+            <input type="range" id="volume" min="0" max="1" step="0.05" value="0.8" aria-label="Volume">
+          </div>
+          <button type="button" class="ctrl-btn" id="btn-fullscreen">FULL</button>
+        </div>
+
+        <div class="up-next">
+          <h3>UP NEXT</h3>
+          <ul class="queue-list" id="queue-list"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOGIN -->
+  <section id="page-login" class="page">
+    <div class="login-card">
+      <h2>ADMIN LOGIN</h2>
+      <div class="form-group">
+        <label for="admin-password">ADMIN PASSWORD</label>
+        <input type="password" id="admin-password" autocomplete="current-password">
+        <label class="show-pass">
+          <input type="checkbox" id="show-password"> SHOW PASSWORD
+        </label>
+      </div>
+      <button type="button" class="btn btn-primary" style="width:100%" id="btn-login">LOG IN</button>
+      <p class="error-msg" id="login-error"></p>
+      <button type="button" class="btn btn-secondary btn-sm" style="width:100%;margin-top:16px" id="btn-login-back">BACK</button>
+    </div>
+  </section>
+
+  <!-- ADMIN -->
+  <section id="page-admin" class="page">
+    <div class="admin-wrap">
+      <div class="admin-header">
+        <h1>ADMIN DASHBOARD</h1>
+        <div class="admin-actions">
+          <button type="button" class="btn btn-primary btn-sm" id="btn-start-stream">START STREAM</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-pause-stream">PAUSE STREAM</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-next-song">NEXT SONG</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-logout">LOG OUT</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>ADD A SONG</h3>
+        <form id="add-song-form">
+          <div class="form-group">
+            <label for="video-file">VIDEO FILE</label>
+            <input type="file" id="video-file" accept="video/mp4,video/webm,video/ogg,video/*">
+          </div>
+          <div class="form-group">
+            <label for="artist-name">ARTIST NAME</label>
+            <input type="text" id="artist-name" maxlength="120" placeholder="Artist or group">
+          </div>
+          <div class="form-group country-search-wrap">
+            <label for="country-search">COUNTRY</label>
+            <input type="text" id="country-search" placeholder="Search country..." autocomplete="off">
+            <input type="hidden" id="country-code">
+            <input type="hidden" id="country-name">
+            <div class="country-dropdown" id="country-dropdown"></div>
+          </div>
+          <div class="form-group">
+            <label for="song-title">SONG TITLE</label>
+            <input type="text" id="song-title" maxlength="150" placeholder="Song title">
+          </div>
+          <button type="submit" class="btn btn-primary" id="btn-upload">UPLOAD VIDEO</button>
+          <p class="error-msg" id="add-error"></p>
+          <p class="success-msg" id="add-success"></p>
+        </form>
+      </div>
+
+      <div class="panel">
+        <h3>MANAGE SONGS</h3>
+        <ul class="song-list" id="song-list"></ul>
+        <p id="song-list-empty" class="empty-state" style="padding:30px;font-size:1rem;">No songs in the playlist yet.</p>
+      </div>
+    </div>
+  </section>
+
+<script>
+/*
+  SHONVISION — standalone client-side demo
+  -----------------------------------------
+  LIMITATIONS (important):
+  1. Password is visible in source code. This is only a demo gate.
+     Real security requires a backend.
+  2. Videos and playlist live only in THIS browser (IndexedDB + localStorage).
+     They are NOT shared between different devices or browsers.
+  3. BroadcastChannel / storage events keep tabs of the SAME browser in sync.
+     There is no global live stream across the internet.
+  4. Large videos may exceed browser storage quota.
+*/
+
+(function () {
+  'use strict';
+
+  // ===== CONSTANTS =====
+  var ADMIN_PASSWORD = 'SHONVISION01ULTRAADMIN2026PA';
+  var DB_NAME = 'ShonvisionDB';
+  var DB_VERSION = 1;
+  var STORE_VIDEOS = 'videos';
+  var LS_PLAYLIST = 'shonvision_playlist';
+  var LS_PLAYBACK = 'shonvision_playback';
+  var LS_AUTH = 'shonvision_auth';
+  var CHANNEL_NAME = 'shonvision_sync';
+
+  var COUNTRIES = [
+    { code: 'AL', name: 'Albania', flag: '🇦🇱' },
+    { code: 'AD', name: 'Andorra', flag: '🇦🇩' },
+    { code: 'AM', name: 'Armenia', flag: '🇦🇲' },
+    { code: 'AU', name: 'Australia', flag: '🇦🇺' },
+    { code: 'AT', name: 'Austria', flag: '🇦🇹' },
+    { code: 'AZ', name: 'Azerbaijan', flag: '🇦🇿' },
+    { code: 'BY', name: 'Belarus', flag: '🇧🇾' },
+    { code: 'BE', name: 'Belgium', flag: '🇧🇪' },
+    { code: 'BA', name: 'Bosnia and Herzegovina', flag: '🇧🇦' },
+    { code: 'BG', name: 'Bulgaria', flag: '🇧🇬' },
+    { code: 'HR', name: 'Croatia', flag: '🇭🇷' },
+    { code: 'CY', name: 'Cyprus', flag: '🇨🇾' },
+    { code: 'CZ', name: 'Czechia', flag: '🇨🇿' },
+    { code: 'DK', name: 'Denmark', flag: '🇩🇰' },
+    { code: 'EE', name: 'Estonia', flag: '🇪🇪' },
+    { code: 'FI', name: 'Finland', flag: '🇫🇮' },
+    { code: 'FR', name: 'France', flag: '🇫🇷' },
+    { code: 'GE', name: 'Georgia', flag: '🇬🇪' },
+    { code: 'DE', name: 'Germany', flag: '🇩🇪' },
+    { code: 'GR', name: 'Greece', flag: '🇬🇷' },
+    { code: 'HU', name: 'Hungary', flag: '🇭🇺' },
+    { code: 'IS', name: 'Iceland', flag: '🇮🇸' },
+    { code: 'IE', name: 'Ireland', flag: '🇮🇪' },
+    { code: 'IL', name: 'Israel', flag: '🇮🇱' },
+    { code: 'IT', name: 'Italy', flag: '🇮🇹' },
+    { code: 'JP', name: 'Japan', flag: '🇯🇵' },
+    { code: 'LV', name: 'Latvia', flag: '🇱🇻' },
+    { code: 'LT', name: 'Lithuania', flag: '🇱🇹' },
+    { code: 'LU', name: 'Luxembourg', flag: '🇱🇺' },
+    { code: 'MT', name: 'Malta', flag: '🇲🇹' },
+    { code: 'MD', name: 'Moldova', flag: '🇲🇩' },
+    { code: 'MC', name: 'Monaco', flag: '🇲🇨' },
+    { code: 'ME', name: 'Montenegro', flag: '🇲🇪' },
+    { code: 'NL', name: 'Netherlands', flag: '🇳🇱' },
+    { code: 'MK', name: 'North Macedonia', flag: '🇲🇰' },
+    { code: 'NO', name: 'Norway', flag: '🇳🇴' },
+    { code: 'PL', name: 'Poland', flag: '🇵🇱' },
+    { code: 'PT', name: 'Portugal', flag: '🇵🇹' },
+    { code: 'RO', name: 'Romania', flag: '🇷🇴' },
+    { code: 'SM', name: 'San Marino', flag: '🇸🇲' },
+    { code: 'RS', name: 'Serbia', flag: '🇷🇸' },
+    { code: 'SK', name: 'Slovakia', flag: '🇸🇰' },
+    { code: 'SI', name: 'Slovenia', flag: '🇸🇮' },
+    { code: 'ES', name: 'Spain', flag: '🇪🇸' },
+    { code: 'SE', name: 'Sweden', flag: '🇸🇪' },
+    { code: 'CH', name: 'Switzerland', flag: '🇨🇭' },
+    { code: 'TR', name: 'Türkiye', flag: '🇹🇷' },
+    { code: 'UA', name: 'Ukraine', flag: '🇺🇦' },
+    { code: 'GB', name: 'United Kingdom', flag: '🇬🇧' },
+    { code: 'US', name: 'United States', flag: '🇺🇸' },
+    { code: 'KR', name: 'South Korea', flag: '🇰🇷' },
+    { code: 'CN', name: 'China', flag: '🇨🇳' },
+    { code: 'BR', name: 'Brazil', flag: '🇧🇷' },
+    { code: 'CA', name: 'Canada', flag: '🇨🇦' },
+    { code: 'MX', name: 'Mexico', flag: '🇲🇽' },
+    { code: 'AR', name: 'Argentina', flag: '🇦🇷' },
+    { code: 'IN', name: 'India', flag: '🇮🇳' },
+    { code: 'NZ', name: 'New Zealand', flag: '🇳🇿' }
+  ];
+
+  // ===== STATE =====
+  var playlist = [];
+  var playback = {
+    isPlaying: false,
+    currentIndex: 0,
+    startTimestamp: 0,
+    offsetSeconds: 0
+  };
+  var db = null;
+  var objectUrls = {};
+  var channel = null;
+  var applyingRemote = false;
+  var progressTimer = null;
+
+  // ===== HELPERS =====
+  function $(id) { return document.getElementById(id); }
+
+  function showPage(name) {
+    var pages = ['page-home', 'page-player', 'page-login', 'page-admin'];
+    for (var i = 0; i < pages.length; i++) {
+      var el = $(pages[i]);
+      if (el) el.classList.remove('active');
+    }
+    var target = $('page-' + name);
+    if (target) target.classList.add('active');
+
+    if (name === 'player') refreshPlayerUI();
+    if (name === 'admin') renderSongList();
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    var d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  // ===== INDEXEDDB =====
+  function openDB() {
+    return new Promise(function (resolve, reject) {
+      try {
+        var req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onerror = function () { reject(req.error); };
+        req.onsuccess = function () {
+          db = req.result;
+          resolve(db);
+        };
+        req.onupgradeneeded = function (e) {
+          var database = e.target.result;
+          if (!database.objectStoreNames.contains(STORE_VIDEOS)) {
+            database.createObjectStore(STORE_VIDEOS, { keyPath: 'id' });
+          }
+        };
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  function saveVideoBlob(id, blob) {
+    return new Promise(function (resolve, reject) {
+      if (!db) return reject(new Error('DB not ready'));
+      var tx = db.transaction(STORE_VIDEOS, 'readwrite');
+      tx.objectStore(STORE_VIDEOS).put({ id: id, blob: blob, mime: blob.type, size: blob.size });
+      tx.oncomplete = function () { resolve(); };
+      tx.onerror = function () { reject(tx.error); };
+    });
+  }
+
+  function getVideoBlob(id) {
+    return new Promise(function (resolve, reject) {
+      if (!db) return reject(new Error('DB not ready'));
+      var tx = db.transaction(STORE_VIDEOS, 'readonly');
+      var req = tx.objectStore(STORE_VIDEOS).get(id);
+      req.onsuccess = function () { resolve(req.result ? req.result.blob : null); };
+      req.onerror = function () { reject(req.error); };
+    });
+  }
+
+  function deleteVideoBlob(id) {
+    return new Promise(function (resolve) {
+      if (!db) return resolve();
+      var tx = db.transaction(STORE_VIDEOS, 'readwrite');
+      tx.objectStore(STORE_VIDEOS).delete(id);
+      tx.oncomplete = function () { resolve(); };
+      tx.onerror = function () { resolve(); };
+    });
+  }
+
+  function getObjectURL(videoId) {
+    return new Promise(function (resolve) {
+      if (objectUrls[videoId]) return resolve(objectUrls[videoId]);
+      getVideoBlob(videoId).then(function (blob) {
+        if (!blob) return resolve(null);
+        var url = URL.createObjectURL(blob);
+        objectUrls[videoId] = url;
+        resolve(url);
+      }).catch(function () { resolve(null); });
+    });
+  }
+
+  // ===== LOCALSTORAGE =====
+  function loadPlaylist() {
+    try {
+      var raw = localStorage.getItem(LS_PLAYLIST);
+      playlist = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(playlist)) playlist = [];
+    } catch (e) {
+      playlist = [];
+    }
+  }
+
+  function savePlaylist() {
+    try {
+      localStorage.setItem(LS_PLAYLIST, JSON.stringify(playlist));
+      broadcast({ type: 'playlist', playlist: playlist });
+    } catch (e) {
+      console.warn('Could not save playlist', e);
+    }
+  }
+
+  function loadPlayback() {
+    try {
+      var raw = localStorage.getItem(LS_PLAYBACK);
+      if (raw) {
+        var data = JSON.parse(raw);
+        playback.isPlaying = !!data.isPlaying;
+        playback.currentIndex = data.currentIndex || 0;
+        playback.startTimestamp = data.startTimestamp || 0;
+        playback.offsetSeconds = data.offsetSeconds || 0;
+      }
+    } catch (e) {}
+  }
+
+  function savePlayback() {
+    try {
+      localStorage.setItem(LS_PLAYBACK, JSON.stringify(playback));
+      broadcast({ type: 'playback', playback: playback });
+    } catch (e) {}
+  }
+
+  // ===== BROADCAST =====
+  function initChannel() {
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        channel = new BroadcastChannel(CHANNEL_NAME);
+        channel.onmessage = function (ev) {
+          handleRemoteMessage(ev.data);
+        };
+      }
+    } catch (e) {}
+
+    window.addEventListener('storage', function (e) {
+      if (e.key === LS_PLAYBACK && e.newValue) {
+        try {
+          applyRemotePlayback(JSON.parse(e.newValue));
+        } catch (err) {}
+      }
+      if (e.key === LS_PLAYLIST && e.newValue) {
+        try {
+          playlist = JSON.parse(e.newValue);
+          renderSongList();
+          refreshPlayerUI();
+        } catch (err) {}
+      }
+    });
+  }
+
+  function broadcast(msg) {
+    if (channel) {
+      try { channel.postMessage(msg); } catch (e) {}
+    }
+  }
+
+  function handleRemoteMessage(msg) {
+    if (!msg || applyingRemote) return;
+    if (msg.type === 'playback') applyRemotePlayback(msg.playback);
+    if (msg.type === 'playlist') {
+      playlist = msg.playlist || [];
+      renderSongList();
+      refreshPlayerUI();
+    }
+  }
+
+  function applyRemotePlayback(remote) {
+    if (!remote) return;
+    applyingRemote = true;
+    playback.isPlaying = !!remote.isPlaying;
+    playback.currentIndex = remote.currentIndex || 0;
+    playback.startTimestamp = remote.startTimestamp || 0;
+    playback.offsetSeconds = remote.offsetSeconds || 0;
+
+    var videoEl = $('mainVideo');
+    if (playlist.length && playback.currentIndex < playlist.length) {
+      var expected = getExpectedPosition();
+      if (Math.abs(videoEl.currentTime - expected) > 1.5) {
+        try { videoEl.currentTime = expected; } catch (e) {}
+      }
+      if (playback.isPlaying && videoEl.paused) {
+        videoEl.play().catch(function () {});
+      } else if (!playback.isPlaying && !videoEl.paused) {
+        videoEl.pause();
+      }
+    }
+    updatePlayerMeta();
+    updateQueue();
+    applyingRemote = false;
+  }
+
+  // ===== PLAYBACK =====
+  function getExpectedPosition() {
+    if (!playback.isPlaying) return playback.offsetSeconds;
+    var elapsed = (Date.now() - playback.startTimestamp) / 1000;
+    return playback.offsetSeconds + elapsed;
+  }
+
+  function startPlaybackFromIndex(index, seekTo) {
+    if (!playlist.length) return;
+    if (typeof seekTo !== 'number') seekTo = 0;
+    playback.currentIndex = ((index % playlist.length) + playlist.length) % playlist.length;
+    playback.offsetSeconds = seekTo;
+    playback.startTimestamp = Date.now();
+    playback.isPlaying = true;
+    savePlayback();
+    loadAndPlayCurrent();
+  }
+
+  function loadAndPlayCurrent() {
+    var videoEl = $('mainVideo');
+    if (!playlist.length) {
+      showEmptyPlayer(true);
+      return;
+    }
+    showEmptyPlayer(false);
+    var song = playlist[playback.currentIndex];
+    if (!song) return;
+
+    getObjectURL(song.videoId).then(function (url) {
+      if (!url) {
+        advanceToNext();
+        return;
+      }
+      videoEl.src = url;
+      videoEl.load();
+
+      videoEl.onloadedmetadata = function () {
+        var expected = getExpectedPosition();
+        if (videoEl.duration && expected >= videoEl.duration - 0.4) {
+          advanceToNext();
+          return;
+        }
+        try {
+          videoEl.currentTime = Math.min(expected, videoEl.duration || expected);
+        } catch (e) {}
+        if (playback.isPlaying) {
+          videoEl.play().catch(function () {});
+        }
+        updatePlayerMeta();
+        updateQueue();
+      };
+    });
+  }
+
+  function advanceToNext() {
+    if (!playlist.length) return;
+    var next = (playback.currentIndex + 1) % playlist.length;
+    startPlaybackFromIndex(next, 0);
+  }
+
+  function pauseStream() {
+    var videoEl = $('mainVideo');
+    playback.offsetSeconds = videoEl.currentTime || getExpectedPosition();
+    playback.isPlaying = false;
+    playback.startTimestamp = Date.now();
+    savePlayback();
+    videoEl.pause();
+    updatePlayPauseBtn();
+  }
+
+  function resumeStream() {
+    if (!playlist.length) return;
+    var videoEl = $('mainVideo');
+    playback.offsetSeconds = videoEl.currentTime || 0;
+    playback.startTimestamp = Date.now();
+    playback.isPlaying = true;
+    savePlayback();
+    videoEl.play().catch(function () {});
+    updatePlayPauseBtn();
+  }
+
+  // ===== PLAYER UI =====
+  function showEmptyPlayer(empty) {
+    var emptyEl = $('player-empty');
+    var contentEl = $('player-content');
+    if (emptyEl) emptyEl.classList.toggle('hidden', !empty);
+    if (contentEl) contentEl.classList.toggle('hidden', empty);
+  }
+
+  function updatePlayerMeta() {
+    if (!playlist.length) return;
+    var song = playlist[playback.currentIndex];
+    if (!song) return;
+    $('now-flag').textContent = song.flag || '';
+    $('now-country').textContent = song.countryName || '';
+    $('now-artist').textContent = song.artist || '';
+    $('now-title').textContent = song.title || '';
+    updatePlayPauseBtn();
+  }
+
+  function updatePlayPauseBtn() {
+    var btn = $('btn-playpause');
+    var videoEl = $('mainVideo');
+    if (!btn) return;
+    btn.textContent = (playback.isPlaying && videoEl && !videoEl.paused) ? 'PAUSE' : 'PLAY';
+  }
+
+  function updateQueue() {
+    var ul = $('queue-list');
+    if (!ul) return;
+    ul.innerHTML = '';
+    if (playlist.length < 2) {
+      ul.innerHTML = '<li style="opacity:0.6">No more songs in queue</li>';
+      return;
+    }
+    for (var i = 1; i <= Math.min(5, playlist.length - 1); i++) {
+      var idx = (playback.currentIndex + i) % playlist.length;
+      var s = playlist[idx];
+      var li = document.createElement('li');
+      li.className = 'queue-item';
+      li.innerHTML = '<span class="flag">' + (s.flag || '') + '</span><span>' +
+        escapeHtml(s.artist) + ' — ' + escapeHtml(s.title) + '</span>';
+      ul.appendChild(li);
+    }
+  }
+
+  function formatTime(sec) {
+    if (!isFinite(sec) || sec < 0) return '0:00';
+    var m = Math.floor(sec / 60);
+    var s = Math.floor(sec % 60);
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function tickProgress() {
+    var videoEl = $('mainVideo');
+    if (!videoEl || !videoEl.duration) return;
+    var cur = videoEl.currentTime;
+    var dur = videoEl.duration;
+    var pct = (cur / dur) * 100;
+    var bar = $('progress-bar');
+    if (bar) bar.style.width = pct + '%';
+    var tCur = $('time-current');
+    var tRem = $('time-remaining');
+    if (tCur) tCur.textContent = formatTime(cur);
+    if (tRem) tRem.textContent = '-' + formatTime(dur - cur);
+  }
+
+  function refreshPlayerUI() {
+    if (!playlist.length) {
+      showEmptyPlayer(true);
+      return;
+    }
+    showEmptyPlayer(false);
+    var song = playlist[playback.currentIndex];
+    var videoEl = $('mainVideo');
+    if (song && (!videoEl.src || !objectUrls[song.videoId])) {
+      loadAndPlayCurrent();
+    } else {
+      updatePlayerMeta();
+      updateQueue();
+    }
+  }
+
+  // ===== COUNTRY SELECTOR =====
+  function setupCountrySearch() {
+    var input = $('country-search');
+    var dropdown = $('country-dropdown');
+    var codeInput = $('country-code');
+    var nameInput = $('country-name');
+    if (!input || !dropdown) return;
+
+    function renderOptions(filter) {
+      var q = (filter || '').toLowerCase().trim();
+      var matches = [];
+      for (var i = 0; i < COUNTRIES.length; i++) {
+        var c = COUNTRIES[i];
+        if (c.name.toLowerCase().indexOf(q) !== -1 || c.code.toLowerCase().indexOf(q) !== -1) {
+          matches.push(c);
+          if (matches.length >= 40) break;
+        }
+      }
+      dropdown.innerHTML = '';
+      for (var j = 0; j < matches.length; j++) {
+        (function (c) {
+          var div = document.createElement('div');
+          div.className = 'country-option';
+          div.innerHTML = '<span class="flag">' + c.flag + '</span> ' + c.name;
+          div.addEventListener('mousedown', function (e) {
+            e.preventDefault();
+            input.value = c.flag + ' ' + c.name;
+            codeInput.value = c.code;
+            nameInput.value = c.name;
+            dropdown.classList.remove('open');
+          });
+          dropdown.appendChild(div);
+        })(matches[j]);
+      }
+      dropdown.classList.toggle('open', matches.length > 0);
+    }
+
+    input.addEventListener('input', function () {
+      codeInput.value = '';
+      nameInput.value = '';
+      renderOptions(input.value);
+    });
+    input.addEventListener('focus', function () { renderOptions(input.value); });
+    input.addEventListener('blur', function () {
+      setTimeout(function () { dropdown.classList.remove('open'); }, 200);
+    });
+  }
+
+  // ===== ADD SONG =====
+  function handleAddSong(e) {
+    e.preventDefault();
+    var errEl = $('add-error');
+    var okEl = $('add-success');
+    errEl.textContent = '';
+    okEl.textContent = '';
+
+    var fileInput = $('video-file');
+    var artist = ($('artist-name').value || '').trim();
+    var title = ($('song-title').value || '').trim();
+    var countryCode = $('country-code').value;
+    var countryName = $('country-name').value;
+    var file = fileInput.files && fileInput.files[0];
+
+    if (!file) {
+      errEl.textContent = 'Please select a video file.';
+      return;
+    }
+    if (!artist || !title || !countryCode) {
+      errEl.textContent = 'All fields are required.';
+      return;
+    }
+
+    var btn = $('btn-upload');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading"></span> Uploading…';
+
+    var videoId = 'v_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
+
+    saveVideoBlob(videoId, file).then(function () {
+      var country = null;
+      for (var i = 0; i < COUNTRIES.length; i++) {
+        if (COUNTRIES[i].code === countryCode) { country = COUNTRIES[i]; break; }
+      }
+      if (!country) country = { flag: '', name: countryName };
+
+      playlist.push({
+        id: 's_' + Date.now(),
+        videoId: videoId,
+        artist: artist,
+        title: title,
+        countryCode: countryCode,
+        countryName: country.name,
+        flag: country.flag
+      });
+      savePlaylist();
+      renderSongList();
+
+      fileInput.value = '';
+      $('artist-name').value = '';
+      $('song-title').value = '';
+      $('country-search').value = '';
+      $('country-code').value = '';
+      $('country-name').value = '';
+      okEl.textContent = 'Song added successfully!';
+    }).catch(function (err) {
+      console.error(err);
+      if (err && (err.name === 'QuotaExceededError' || (err.message && err.message.indexOf('quota') !== -1))) {
+        errEl.textContent = 'Storage quota exceeded. Try a smaller video.';
+      } else {
+        errEl.textContent = 'Failed to store video. Browser storage may be full or restricted.';
+      }
+    }).then(function () {
+      btn.disabled = false;
+      btn.textContent = 'UPLOAD VIDEO';
+    });
+  }
+
+  // ===== SONG LIST =====
+  function renderSongList() {
+    var ul = $('song-list');
+    var empty = $('song-list-empty');
+    if (!ul) return;
+    ul.innerHTML = '';
+
+    if (!playlist.length) {
+      if (empty) empty.classList.remove('hidden');
+      return;
+    }
+    if (empty) empty.classList.add('hidden');
+
+    for (var i = 0; i < playlist.length; i++) {
+      (function (song, index) {
+        var li = document.createElement('li');
+        li.className = 'song-item' + (index === playback.currentIndex && playback.isPlaying ? ' playing' : '');
+        li.innerHTML =
+          '<div class="song-meta">' +
+            '<div class="title"><span class="flag">' + (song.flag || '') + '</span> ' + escapeHtml(song.title) + '</div>' +
+            '<div class="artist">' + escapeHtml(song.artist) + ' · ' + escapeHtml(song.countryName) + '</div>' +
+          '</div>' +
+          '<div class="song-actions">' +
+            '<button type="button" class="btn-icon" data-action="up" data-idx="' + index + '">MOVE UP</button>' +
+            '<button type="button" class="btn-icon" data-action="down" data-idx="' + index + '">MOVE DOWN</button>' +
+            '<button type="button" class="btn-icon" data-action="edit" data-idx="' + index + '">EDIT</button>' +
+            '<button type="button" class="btn-icon btn-danger" data-action="delete" data-idx="' + index + '">DELETE</button>' +
+          '</div>';
+        ul.appendChild(li);
+      })(playlist[i], i);
+    }
+
+    var buttons = ul.querySelectorAll('[data-action]');
+    for (var b = 0; b < buttons.length; b++) {
+      buttons[b].addEventListener('click', function () {
+        var action = this.getAttribute('data-action');
+        var idx = parseInt(this.getAttribute('data-idx'), 10);
+        if (action === 'up') moveSong(idx, -1);
+        if (action === 'down') moveSong(idx, 1);
+        if (action === 'delete') deleteSong(idx);
+        if (action === 'edit') editSong(idx);
+      });
+    }
+  }
+
+  function moveSong(index, dir) {
+    var newIndex = index + dir;
+    if (newIndex < 0 || newIndex >= playlist.length) return;
+    var item = playlist.splice(index, 1)[0];
+    playlist.splice(newIndex, 0, item);
+    if (playback.currentIndex === index) playback.currentIndex = newIndex;
+    else if (index < playback.currentIndex && newIndex >= playback.currentIndex) playback.currentIndex--;
+    else if (index > playback.currentIndex && newIndex <= playback.currentIndex) playback.currentIndex++;
+    savePlaylist();
+    savePlayback();
+    renderSongList();
+  }
+
+  function deleteSong(index) {
+    if (!confirm('Delete this song from the playlist? The video will also be removed from local storage.')) return;
+    var song = playlist[index];
+    playlist.splice(index, 1);
+    if (objectUrls[song.videoId]) {
+      try { URL.revokeObjectURL(objectUrls[song.videoId]); } catch (e) {}
+      delete objectUrls[song.videoId];
+    }
+    deleteVideoBlob(song.videoId);
+    if (playback.currentIndex >= playlist.length) {
+      playback.currentIndex = Math.max(0, playlist.length - 1);
+    }
+    if (playlist.length === 0) {
+      playback.isPlaying = false;
+      var videoEl = $('mainVideo');
+      videoEl.removeAttribute('src');
+      videoEl.load();
+    }
+    savePlaylist();
+    savePlayback();
+    renderSongList();
+    refreshPlayerUI();
+  }
+
+  function editSong(index) {
+    var song = playlist[index];
+    var newArtist = prompt('Artist name:', song.artist);
+    if (newArtist === null) return;
+    var newTitle = prompt('Song title:', song.title);
+    if (newTitle === null) return;
+    var newCountryName = prompt('Country name:', song.countryName);
+    if (newCountryName === null) return;
+
+    song.artist = (newArtist || '').trim() || song.artist;
+    song.title = (newTitle || '').trim() || song.title;
+
+    var found = null;
+    var q = (newCountryName || '').trim().toLowerCase();
+    for (var i = 0; i < COUNTRIES.length; i++) {
+      if (COUNTRIES[i].name.toLowerCase() === q) { found = COUNTRIES[i]; break; }
+    }
+    if (found) {
+      song.countryCode = found.code;
+      song.countryName = found.name;
+      song.flag = found.flag;
+    } else if (q) {
+      song.countryName = newCountryName.trim();
+    }
+    savePlaylist();
+    renderSongList();
+    updatePlayerMeta();
+  }
+
+  // ===== AUTH =====
+  function checkAuth() {
+    try {
+      return sessionStorage.getItem(LS_AUTH) === '1';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function setAuth(ok) {
+    try {
+      if (ok) sessionStorage.setItem(LS_AUTH, '1');
+      else sessionStorage.removeItem(LS_AUTH);
+    } catch (e) {}
+  }
+
+  // ===== EVENTS =====
+  function bindEvents() {
+    // Home buttons — the critical ones
+    var btnNonstop = $('btn-nonstop');
+    var btnAdmin = $('btn-admin');
+
+    if (btnNonstop) {
+      btnNonstop.addEventListener('click', function () {
+        showPage('player');
+      });
+    }
+
+    if (btnAdmin) {
+      btnAdmin.addEventListener('click', function () {
+        if (checkAuth()) {
+          showPage('admin');
+        } else {
+          showPage('login');
+        }
+      });
+    }
+
+    // Player
+    var btnBack = $('btn-back-home');
+    if (btnBack) {
+      btnBack.addEventListener('click', function () { showPage('home'); });
+    }
+
+    var btnPlayPause = $('btn-playpause');
+    if (btnPlayPause) {
+      btnPlayPause.addEventListener('click', function () {
+        var videoEl = $('mainVideo');
+        if (videoEl.paused) resumeStream();
+        else pauseStream();
+      });
+    }
+
+    var btnMute = $('btn-mute');
+    if (btnMute) {
+      btnMute.addEventListener('click', function () {
+        var videoEl = $('mainVideo');
+        videoEl.muted = !videoEl.muted;
+        btnMute.textContent = videoEl.muted ? 'UNMUTE' : 'MUTE';
+      });
+    }
+
+    var volume = $('volume');
+    if (volume) {
+      volume.addEventListener('input', function () {
+        var videoEl = $('mainVideo');
+        videoEl.volume = parseFloat(this.value);
+        videoEl.muted = videoEl.volume === 0;
+      });
+    }
+
+    var btnFull = $('btn-fullscreen');
+    if (btnFull) {
+      btnFull.addEventListener('click', function () {
+        var container = $('mainVideo').parentElement;
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+        } else if (container.requestFullscreen) {
+          container.requestFullscreen();
+        }
+      });
+    }
+
+    var videoEl = $('mainVideo');
+    if (videoEl) {
+      videoEl.addEventListener('ended', function () {
+        if (playback.isPlaying) advanceToNext();
+      });
+      videoEl.addEventListener('play', function () {
+        if (!applyingRemote) {
+          playback.isPlaying = true;
+          playback.offsetSeconds = videoEl.currentTime;
+          playback.startTimestamp = Date.now();
+          savePlayback();
+        }
+        updatePlayPauseBtn();
+      });
+      videoEl.addEventListener('pause', function () {
+        if (!applyingRemote && !videoEl.ended) {
+          playback.offsetSeconds = videoEl.currentTime;
+          playback.isPlaying = false;
+          playback.startTimestamp = Date.now();
+          savePlayback();
+        }
+        updatePlayPauseBtn();
+      });
+      videoEl.addEventListener('timeupdate', tickProgress);
+    }
+
+    // Login
+    var showPass = $('show-password');
+    if (showPass) {
+      showPass.addEventListener('change', function () {
+        $('admin-password').type = this.checked ? 'text' : 'password';
+      });
+    }
+
+    var btnLogin = $('btn-login');
+    if (btnLogin) {
+      btnLogin.addEventListener('click', function () {
+        var pw = ($('admin-password').value || '');
+        if (pw === ADMIN_PASSWORD) {
+          setAuth(true);
+          $('login-error').textContent = '';
+          $('admin-password').value = '';
+          showPage('admin');
+        } else {
+          $('login-error').textContent = 'INCORRECT PASSWORD';
+        }
+      });
+    }
+
+    var adminPw = $('admin-password');
+    if (adminPw) {
+      adminPw.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          btnLogin.click();
+        }
+      });
+    }
+
+    var btnLoginBack = $('btn-login-back');
+    if (btnLoginBack) {
+      btnLoginBack.addEventListener('click', function () { showPage('home'); });
+    }
+
+    // Admin
+    var btnLogout = $('btn-logout');
+    if (btnLogout) {
+      btnLogout.addEventListener('click', function () {
+        setAuth(false);
+        showPage('home');
+      });
+    }
+
+    var form = $('add-song-form');
+    if (form) {
+      form.addEventListener('submit', handleAddSong);
+    }
+
+    var btnStart = $('btn-start-stream');
+    if (btnStart) {
+      btnStart.addEventListener('click', function () {
+        if (!playlist.length) {
+          alert('Add at least one song first.');
+          return;
+        }
+        startPlaybackFromIndex(playback.currentIndex || 0, getExpectedPosition());
+        renderSongList();
+      });
+    }
+
+    var btnPause = $('btn-pause-stream');
+    if (btnPause) {
+      btnPause.addEventListener('click', function () {
+        pauseStream();
+        renderSongList();
+      });
+    }
+
+    var btnNext = $('btn-next-song');
+    if (btnNext) {
+      btnNext.addEventListener('click', function () {
+        advanceToNext();
+        renderSongList();
+      });
+    }
+
+    setupCountrySearch();
+  }
+
+  // ===== INIT =====
+  function init() {
+    openDB().then(function () {
+      // ok
+    }).catch(function (e) {
+      console.warn('IndexedDB unavailable:', e);
+    }).then(function () {
+      loadPlaylist();
+      loadPlayback();
+      initChannel();
+      bindEvents();
+
+      if (playlist.length && playback.isPlaying) {
+        loadAndPlayCurrent();
+      }
+
+      progressTimer = setInterval(tickProgress, 400);
+    });
+  }
+
+  // Start when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
